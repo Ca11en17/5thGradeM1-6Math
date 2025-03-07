@@ -1,1 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PL Project #4</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: rgb(109, 107, 107);
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 40%;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .menu-button {
+            margin-top: 10px;
+            padding: 15px 30px;
+            font-size: 22px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        button:hover, .menu-button:hover {
+            background-color: #0056b3;
+        }
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .keypad button {
+            padding: 20px;
+            font-size: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .keypad button:hover {
+            background-color: #0056b3;
+        }
+        #answer {
+            font-size: 20px;
+            padding: 10px;
+            width: 80%;
+        }
+    </style>
+<script>
+    let score = 0;
+    let rounds = 15;
+    let currentRound = 0;
+    let currentAnswer = '';
+    let startTime;
+
+    // Function to generate random questions based on module
+    function generateRandomQuestion(module) {
+        let question, answer;
+
+        if (module === 1) {
+            // Module 1: Place Value and Decimal Fractions
+            let num = Math.floor(Math.random() * 10000) + 1;  // Random number between 1 and 10000
+            let digitPosition = Math.floor(Math.random() * 4) + 1;  // Random position for digit (ones, tens, hundreds, thousands)
+            let numStr = num.toString();
+            let digitValue = parseInt(numStr[numStr.length - digitPosition]) * Math.pow(10, digitPosition - 1);  // Place value of the digit
+
+            question = `What is the value of the digit ${numStr[numStr.length - digitPosition]} in ${num}?`;
+            answer = digitValue;
+
+        } else if (module === 2) {
+            // Module 2: Multi-Digit Whole Number and Decimal Operations
+            let num1 = Math.floor(Math.random() * 5000) + 1000; // Random number between 1000 and 5000
+            let num2 = Math.floor(Math.random() * 5000) + 1000; // Random number between 1000 and 5000
+            let operator = Math.random() < 0.5 ? '+' : '-'; // Random operator (+ or -)
+
+            question = `What is ${num1} ${operator} ${num2}?`;
+            answer = operator === '+' ? num1 + num2 : num1 - num2;
+
+        } else if (module === 3) {
+            // Module 3: Addition and Subtraction of Fractions
+            let num1 = Math.floor(Math.random() * 10) + 1; // Random numerator
+            let num2 = Math.floor(Math.random() * 10) + 1; // Random numerator
+            let den = Math.floor(Math.random() * 5) + 2; // Random denominator (2-6)
+            let operator = Math.random() < 0.5 ? '+' : '-'; // Random operator (+ or -)
+
+            question = `${num1}/${den} ${operator} ${num2}/${den}`;
+            answer = operator === '+' ? (num1 + num2) / den : (num1 - num2) / den;
+
+        } else if (module === 4) {
+            // Module 4: Multiplication and Division of Fractions and Decimal Fractions
+            let num1 = Math.floor(Math.random() * 10) + 1; // Random numerator
+            let num2 = Math.floor(Math.random() * 10) + 1; // Random numerator
+            let den1 = Math.floor(Math.random() * 5) + 1; // Random denominator (1-5)
+            let den2 = Math.floor(Math.random() * 5) + 1; // Random denominator (1-5)
+            let operator = Math.random() < 0.5 ? '×' : '÷'; // Random operator (× or ÷)
+
+            question = `${num1}/${den1} ${operator} ${num2}/${den2}`;
+            if (operator === '×') {
+                answer = (num1 * num2) / (den1 * den2);
+            } else {
+                answer = (num1 * den2) / (num2 * den1);
+            }
+        }
+
+        return { question: question, answer: answer };
+    }
+
+    function showMenu() {
+        document.getElementById("container").innerHTML = `
+            <h1>Select a Module</h1>
+            <button class="menu-button" onclick="startGame(1)">Module 1: Place Value & Decimal Fractions</button>
+            <button class="menu-button" onclick="startGame(2)">Module 2: Multi-Digit Whole Number & Decimal Operations</button>
+            <button class="menu-button" onclick="startGame(3)">Module 3: Addition & Subtraction of Fractions</button>
+            <button class="menu-button" onclick="startGame(4)">Module 4: Multiplication & Division of Fractions & Decimals</button>
+        `;
+    }
+
+    function startGame(module) {
+        score = 0;
+        currentRound = 0;
+        startTime = new Date().getTime();
+        nextQuestion(module);
+    }
+
+    function nextQuestion(module) {
+        let { question, answer } = generateRandomQuestion(module);
+
+        currentAnswer = answer;
+
+        document.getElementById("container").innerHTML = `
+            <h1>Question ${currentRound + 1}</h1>
+            <p id="problem">${question}</p>
+            <input type="text" id="answer" placeholder="Enter your answer" autofocus>
+            <div class="keypad">
+                <button onclick="appendToAnswer('1')">1</button>
+                <button onclick="appendToAnswer('2')">2</button>
+                <button onclick="appendToAnswer('3')">3</button>
+                <button onclick="appendToAnswer('4')">4</button>
+                <button onclick="appendToAnswer('5')">5</button>
+                <button onclick="appendToAnswer('6')">6</button>
+                <button onclick="appendToAnswer('7')">7</button>
+                <button onclick="appendToAnswer('8')">8</button>
+                <button onclick="appendToAnswer('9')">9</button>
+                <button onclick="appendToAnswer('.')">.</button>    
+                <button onclick="appendToAnswer('0')">0</button>
+                <button onclick="clearAnswer()">Clear</button>
+            </div>
+            <p><button onclick="checkAnswer(${module})">Submit</button></p>
+            <p id="feedback"></p>
+            <p id="score">Points: ${score}</p>
+            <p id="time">Time: 0s</p>
+        `;
+    }
+
+    function appendToAnswer(num) {
+        document.getElementById("answer").value += num;
+    }
+
+    function clearAnswer() {
+        document.getElementById("answer").value = '';
+    }
+
+    function checkAnswer(module) {
+        let userAnswer = document.getElementById("answer").value.trim();
+        if (parseFloat(userAnswer) === currentAnswer) {
+            score++;
+        }
+
+        let elapsedTime = Math.floor((new Date().getTime() - startTime) / 1000);
+        currentRound++;
+
+        if (currentRound < rounds) {
+            nextQuestion(module);
+        } else {
+            showEndMenu(elapsedTime);
+        }
+    }
+
+    function showEndMenu(elapsedTime) {
+        document.getElementById("container").innerHTML = `
+            <h1>Round Complete!</h1>
+            <p>Your Score: ${score} / ${rounds}</p>
+            <p>Time Taken: ${elapsedTime} seconds</p>
+            <button onclick="startGame(selectedModule.split(' ')[1])">Play Again</button>
+            <button onclick="showMenu()">Main Menu</button>
+        `;
+    }
+
+    window.onload = showMenu;
+</script>
+</head>
+<body>
+    <div id="container" class="container"></div>
+</body>
+</html>
 
